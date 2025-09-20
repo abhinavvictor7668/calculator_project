@@ -1078,7 +1078,7 @@ Bivariate3 <- function() {
   COV <- (sum_of_XiYi / num_of_obs) - (X_bar * Y_bar)
   CORR <- COV / sqrt(VarX * VarY)
   RegCoeff <- CORR*(SDY/SDX)
-  RegEqn <- paste("Y =",round(Y_bar,3) - round(RegCoeff*(X_bar),3), "+", round(RegCoeff,3),"X")
+  RegEqn <- paste("Y =",round(Y_bar,3) - round(RegCoeff*(X_bar),3), sprintf("%+.3f",RegCoeff),"X")
   Intercept <- Y_bar - RegCoeff*(X_bar) + RegCoeff*0
   PE <- round(((1 - CORR^2)/sqrt(num_of_obs)) * 0.6745, 4)
   if (abs(CORR) > 6*PE) {
