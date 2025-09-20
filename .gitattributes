@@ -1,0 +1,4 @@
+*.R linguist-language=R
+*.c linguist-language=C
+*.R linguist-language=R
+*.c linguist-language=C
