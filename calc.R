@@ -313,7 +313,7 @@ SimpleInterest11 <- function () {
   cat("Principal (P)   :", round(Pri, 2), "INR\n")
   cat("Rate (R)        :", round(Rat, 2), "%\n")
   cat("Time (T)        :", Tim, "years\n")
-  cat("Simple Interest :", round(SI, 2), "INR\n")
+  cat("Compd. Interest :", round(SI, 2), "INR\n")
   cat("Total Amount    :", round(Pri + SI, 2), "INR\n")
 }
 
@@ -2257,6 +2257,55 @@ MultiRNG4 <- function() {
   
 }
 
+Shift5 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- numeric(RNG)
+  
+  cat("Enter the SEED\n")
+  SEED <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(SEED) != 1 || any(is.na(SEED))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  SEED <- suppressWarnings(as.integer(SEED))
+  if (any(is.na(SEED)) || SEED <= 0 || SEED > 127) {
+    cat("Invalid input for SEED detected")
+    return()
+  }
+  
+  for (i in 1:RNG) {
+    a <- SEED
+    b <- bitwShiftR(a, 2)
+    c <- bitwXor(a, b)
+    d <- bitwShiftL(c, 3)
+    e <- bitwXor(c, d)
+    e <- bitwAnd(e, 127)
+    result[i] <- e
+    SEED <- e
+  }
+  
+  #cat(sprintf("%07d", as.integer(R.utils::intToBin(a))), "\n")
+  #cat(sprintf("%07d", as.integer(R.utils::intToBin(b))), "\n")
+  #cat(sprintf("%07d", as.integer(R.utils::intToBin(c))), "\n")
+  #cat(sprintf("%07d", as.integer(R.utils::intToBin(d))), "\n")
+  #cat(sprintf("%07d", as.integer(R.utils::intToBin(e))), "\n")
+  
+  print(result)
+}
+
 Simulation <- function() {
   repeat {
     cat("\n-----Simulation menu-----\n")
@@ -2264,7 +2313,8 @@ Simulation <- function() {
     cat("\n2] Mid-Square RNG")
     cat("\n3] Congruential RNG")
     cat("\n4] Multiplicative RNG")
-    cat("\n5] Exit\n")
+    cat("\n5] Shift RNG")
+    cat("\n6] Exit\n")
     input <- readline("Enter your choice: ")
     choice <- suppressWarnings(as.integer(input))
     
@@ -2278,7 +2328,8 @@ Simulation <- function() {
       "2" = MidSqRNG2(),
       "3" = CongRNG3(),
       "4" = MultiRNG4(),
-      "5" = { cat("\nExited Calculator\n"); break },
+      "5" = Shift5(),
+      "6" = { cat("\nExited Calculator\n"); break },
       { cat("\nInvalid choice, please enter 1-5.\n") }
     )
   }
