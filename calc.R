@@ -1,5 +1,7 @@
 setwd("/Users/abhinav/Downloads/essentials/projects")
 library(DescTools)
+library(ggplot2)
+library(extraDistr)
 ############################################################
 AdditionSubtraction1 <- function() {
   result <- 0
@@ -817,7 +819,7 @@ Raw1 <- function() {
     Mean_dev_Median <- sum(abs(vect - Median)) / num_of_obs
     Variance <- sum((vect - AM)^2) / num_of_obs
     Stan_Dev <- Variance ^ (.5)
-    CV <- AM / Stan_Dev 
+    CV <- Stan_Dev / AM
     mu3 <- sum((vect - AM)^3) / num_of_obs
     mu4 <- sum((vect - AM)^4) / num_of_obs
     if (mu3 < 0) {
@@ -862,6 +864,14 @@ Raw1 <- function() {
       "Beta2 (kurtosis): ", BETA2, "\n",
       "Gamma2 (kurtosis): ", GAMMA2, "\n"
     )
+    df <- data.frame(v = vect)
+    p <- ggplot2::ggplot(df, ggplot2::aes(x = v, y = "")) +
+      ggplot2::geom_boxplot(fill = "lightgreen", color = "black", width = 0.3, outlier.alpha = 0.7) +
+      ggplot2::labs(title = "Boxplot", y = NULL) +
+      ggplot2::theme_minimal(base_size = 10) +
+      ggplot2::scale_x_continuous(name = "Values", breaks = pretty(Range, n = 15)) +
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+    print(p)
   } else {
     cat("No valid numbers to calculate\n")
     return()
@@ -975,7 +985,7 @@ Frequency2 <- function() {
   Mean_dev_Median <- mean(abs(vect - Median))
   Variance <- sum(fi * (xi - AM)^2) / n
   Stan_Dev <- sqrt(Variance)
-  CV <- AM / Stan_Dev
+  CV <- Stan_Dev / AM
   mu3 <- sum(fi * (xi - AM)^3) / n
   mu4 <- sum(fi * (xi - AM)^4) / n
   
@@ -1021,6 +1031,14 @@ Frequency2 <- function() {
     "Beta2 (kurtosis): ", BETA2, "\n",
     "Gamma2 (kurtosis): ", GAMMA2, "\n"
   )
+  df <- data.frame(v = vect)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = v, y = "")) +
+    ggplot2::geom_boxplot(fill = "lightgreen", color = "black", width = 0.3, outlier.alpha = 0.7) +
+    ggplot2::labs(title = "Boxplot", y = NULL) +
+    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::scale_x_continuous(name = "Values", breaks = pretty(Range, n = 15)) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+  print(p)
 }
 
 Bivariate3 <- function() {
@@ -1065,7 +1083,7 @@ Bivariate3 <- function() {
   }
   sum_of_Yisq <- 0 
   for (i in Yi) {
-    sum_of_Xisq <- sum_of_Yisq + i^2
+    sum_of_Yisq <- sum_of_Yisq + i^2
   }
   sum_of_XiYi <- sum(Xi * Yi)
   
@@ -1105,7 +1123,17 @@ Bivariate3 <- function() {
     "Significant (|r| > 6*PE): ", Significant, "\n"
   )
   
+  df <- data.frame(X = Xi, Y = Yi)
+  range_x <- range(df$X)
+  reg_line <- function(x) Intercept + RegCoeff * x
   
+  p <- ggplot(df, aes(x = X, y = Y)) +
+    geom_point(color = "blue", size = 2, alpha = 0.8) +
+    stat_function(fun = reg_line, color = "orange", linewidth = 1) +
+    labs(title = "Scatter Plot of Y vs X with (Y on X) Regression line",
+         subtitle = paste0("Equation: ", RegEqn, "  r = ", round(CORR, 4)),
+         x = "X (Independent)", y = "Y (Dependent)") + theme_minimal(base_size = 12)
+  print(p)
 }
 
 DescStats <- function() {
@@ -2092,8 +2120,15 @@ MidSqRNG2 <- function() {
     current <- as.integer(substr(a, 3, 6))
     result[i] <- current
   }
-  
+  result <- result/10000
   cat(result)
+  p <- ppoints(length(result))
+  u_theory <- qunif(p, 0,1)
+  u_sample <- sort(result)
+  plot(u_theory, u_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical U(0,1) quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Uniform(0,1)")
+  abline(0, 1, col = "red", lwd = 2)
+  
 }
 
 CongRNG3 <- function() {
@@ -2182,14 +2217,28 @@ CongRNG3 <- function() {
       result[i] <- SEED
     }
     cat("Knuth conditions met\n")
+    result <- result / m
     print(result)
+    p <- ppoints(length(result))
+    u_theory <- qunif(p, 0,1)
+    u_sample <- sort(result)
+    plot(u_theory, u_sample, pch = 16, cex = 0.6, col = "steelblue",
+         xlab = "Theoretical U(0,1) quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Uniform(0,1)")
+    abline(0, 1, col = "red", lwd = 2)
   } else {
     for (i in 1:RNG) {
       SEED <- (a * SEED + c) %% m
       result[i] <- SEED
     }
     cat("Knuth conditions not met\n")
+    result <- result / m
     print(result)
+    p <- ppoints(length(result))
+    u_theory <- qunif(p, 0,1)
+    u_sample <- sort(result)
+    plot(u_theory, u_sample, pch = 16, cex = 0.6, col = "steelblue",
+         xlab = "Theoretical U(0,1) quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Uniform(0,1)")
+    abline(0, 1, col = "red", lwd = 2)
   }
 }
 
@@ -2253,7 +2302,15 @@ MultiRNG4 <- function() {
     SEED <- (a * SEED) %% m
     result[i] <- SEED
   }
+  result <- result / m
   print(result)
+  p <- ppoints(length(result))
+  u_theory <- qunif(p, 0,1)
+  u_sample <- sort(result)
+  plot(u_theory, u_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical U(0,1) quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Uniform(0,1)")
+  abline(0, 1, col = "red", lwd = 2)
+  
   
 }
 
@@ -2303,18 +2360,525 @@ Shift5 <- function() {
   #cat(sprintf("%07d", as.integer(R.utils::intToBin(d))), "\n")
   #cat(sprintf("%07d", as.integer(R.utils::intToBin(e))), "\n")
   
+  result <- result / 128
   print(result)
+  p <- ppoints(length(result))
+  u_theory <- qunif(p, 0,1)
+  u_sample <- sort(result)
+  plot(u_theory, u_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical U(0,1) quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Uniform(0,1)")
+  abline(0, 1, col = "red", lwd = 2)
+}
+
+Normal6 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter mean of Normal distribution\n")
+  mu <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(mu) != 1 || any(is.na(mu))) {
+    cat("Invalid input for mean detected\n")
+    return()
+  }
+  
+  mu <- suppressWarnings(as.numeric(mu))
+  if (any(is.na(mu))) {
+    cat("Invalid input for mean detected")
+    return()
+  }
+  
+  cat("Enter standard deviation of Normal distribution\n")
+  sd <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(sd) != 1 || any(is.na(sd))) {
+    cat("Invalid input for sd detected\n")
+    return()
+  }
+  
+  sd <- suppressWarnings(as.numeric(sd))
+  if (any(is.na(sd)) || sd <= 0) {
+    cat("Invalid input for sd detected")
+    return()
+  }
+  
+  U <- runif(RNG,0,1)
+  V <- rexp(RNG, rate = 1)
+  Z1 <- (2*V)^(0.5) * sin(2*pi*U)
+  result <- mu + sd*Z1
+  print(result)
+
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dnorm, args = list(mean = mu, sd = sd),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qnorm(q, mu, sd)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Normal quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Normal")
+  abline(0, 1, col = "red", lwd = 2)
+}
+
+Expo7 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter rate parameter of Exponential distribution\n")
+  rt <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(rt) != 1 || any(is.na(rt))) {
+    cat("Invalid input for rate detected\n")
+    return()
+  }
+  
+  rt <- suppressWarnings(as.numeric(rt))
+  if (any(is.na(rt)) || rt <= 0) {
+    cat("Invalid input for rate detected")
+    return()
+  }
+  
+  result <- log(1-runif(RNG, 0, 1)) * (-1/rt)
+  print(result)
+  
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dexp, args = list(rate = rt),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qexp(q, rate = rt)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Exp quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Exponential")
+  abline(0, 1, col = "red", lwd = 2)
+  
+}
+
+Gamma8 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter rate parameter of Gamma distribution\n")
+  rt <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(rt) != 1 || any(is.na(rt))) {
+    cat("Invalid input for rate detected\n")
+    return()
+  }
+  
+  rt <- suppressWarnings(as.numeric(rt))
+  if (any(is.na(rt)) || rt <= 0) {
+    cat("Invalid input for rate detected")
+    return()
+  }
+  
+  cat("Enter shape parameter of Gamma distribution\n")
+  sh <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(sh) != 1 || any(is.na(sh))) {
+    cat("Invalid input for shape detected\n")
+    return()
+  }
+  
+  sh <- suppressWarnings(as.numeric(sh))
+  if (any(is.na(sh)) || sh <= 0) {
+    cat("Invalid input for shape detected")
+    return()
+  }
+  
+  U <- matrix(runif(RNG * sh, 0, 1), nrow = RNG, ncol = sh)
+  print(U)
+  print("\n")
+  result <- -(1/rt) * rowSums(log(U))
+  print(result)
+  
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dgamma, args = list(rate = rt, shape = sh),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qgamma(q, rate = rt, shape = sh)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Gamma quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Gamma")
+  abline(0, 1, col = "red", lwd = 2)
+}
+
+BetaOne9 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter 1st shape para of Beta1 distribution\n")
+  m <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(m) != 1 || any(is.na(m))) {
+    cat("Invalid input for shape detected\n")
+    return()
+  }
+  
+  m <- suppressWarnings(as.numeric(m))
+  if (any(is.na(m)) || m <= 0) {
+    cat("Invalid input for shape detected")
+    return()
+  }
+  
+  cat("Enter 2nd shape para of Beta1 distribution\n")
+  n <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(n) != 1 || any(is.na(n))) {
+    cat("Invalid input for shape detected\n")
+    return()
+  }
+  
+  n <- suppressWarnings(as.numeric(n))
+  if (any(is.na(n)) || n <= 0) {
+    cat("Invalid input for shape detected")
+    return()
+  }
+  
+  X1 <- rgamma(RNG, rate = 1, shape = m)
+  X2 <- rgamma(RNG, rate = 1, shape = n)
+  result <- X1 / (X1+X2)
+  print(result)
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dbeta, args = list(shape1 = m, shape2 = n),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qbeta(q, shape1 = m, shape2 = n)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Beta1 quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Beta1")
+  abline(0, 1, col = "red", lwd = 2)
+  
+}
+
+BetaTwo10 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter 1st shape para of Beta2 distribution\n")
+  m <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(m) != 1 || any(is.na(m))) {
+    cat("Invalid input for shape detected\n")
+    return()
+  }
+  
+  m <- suppressWarnings(as.numeric(m))
+  if (any(is.na(m)) || m <= 0) {
+    cat("Invalid input for shape detected")
+    return()
+  }
+  
+  cat("Enter 2nd shape para of Beta2 distribution\n")
+  n <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(n) != 1 || any(is.na(n))) {
+    cat("Invalid input for shape detected\n")
+    return()
+  }
+  
+  n <- suppressWarnings(as.numeric(n))
+  if (any(is.na(n)) || n <= 0) {
+    cat("Invalid input for shape detected")
+    return()
+  }
+  
+  X1 <- rgamma(RNG, rate = 1, shape = m)
+  X2 <- rgamma(RNG, rate = 1, shape = n)
+  result <- X1 / (X2)
+  print(result)
+  
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dbetapr, args = list(shape1 = m, shape2 = n),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qbetapr(q, shape1 = m, shape2 = n)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Beta1 quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Beta2")
+  abline(0, 1, col = "red", lwd = 2)
+  
+}
+
+ChiSq11 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  rt <- 0.5
+  
+  cat("Enter degrees of freedom of Chi Sq distribution\n")
+  sh <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(sh) != 1 || any(is.na(sh))) {
+    cat("Invalid input for df detected\n")
+    return()
+  }
+  
+  sh <- suppressWarnings(as.numeric(sh))
+  if (any(is.na(sh)) || sh <= 0) {
+    cat("Invalid input for df detected")
+    return()
+  }
+  
+  
+  U <- matrix(runif(RNG * (sh/2), 0, 1), nrow = RNG, ncol = (sh/2))
+  result <- -(1/rt) * rowSums(log(U))
+  print(result)
+  
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dchisq, args = list(df = sh),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qchisq(q, df = sh)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical Chi Sq quantiles", ylab = "Sample quantiles", main = "QQ Plot vs Chi Sq")
+  abline(0, 1, col = "red", lwd = 2)
+}
+
+t12 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter degrees of freedom of t distribution\n")
+  dof <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(dof) != 1 || any(is.na(dof))) {
+    cat("Invalid input for df detected\n")
+    return()
+  }
+  
+  dof <- suppressWarnings(as.numeric(dof))
+  if (any(is.na(dof)) || dof <= 0) {
+    cat("Invalid input for df detected")
+    return()
+  }
+  
+  result <- (rnorm(RNG, 0, 1) * sqrt(dof)) / sqrt(rchisq(RNG, df = dof))
+  print(result)
+  
+  df <- data.frame(x = result)
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = dt, args = list(df = dof),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qt(q, df = dof)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical t quantiles", ylab = "Sample quantiles", main = "QQ Plot vs t")
+  abline(0, 1, col = "red", lwd = 2)
+  
+}
+
+F13 <- function() {
+  cat("Enter number of RNG\n")
+  RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(RNG) != 1 || any(is.na(RNG))) {
+    cat("Invalid input for n detected\n")
+    return()
+  }
+  
+  RNG <- suppressWarnings(as.integer(RNG))
+  if (any(is.na(RNG)) || RNG <= 0) {
+    cat("Invalid input for n detected")
+    return()
+  }
+  
+  result <- c()
+  cat("Enter 1st degrees of freedom of F distribution\n")
+  dof1 <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(dof1) != 1 || any(is.na(dof1))) {
+    cat("Invalid input for df detected\n")
+    return()
+  }
+  
+  dof1 <- suppressWarnings(as.numeric(dof1))
+  if (any(is.na(dof1)) || dof1 <= 0) {
+    cat("Invalid input for df detected")
+    return()
+  }
+  
+  cat("Enter 2nd degrees of freedom of F distribution\n")
+  dof2 <- scan(what = character(), nmax = 1, quiet = TRUE)
+  if (length(dof2) != 1 || any(is.na(dof2))) {
+    cat("Invalid input for df detected\n")
+    return()
+  }
+  
+  dof2 <- suppressWarnings(as.numeric(dof2))
+  if (any(is.na(dof2)) || dof2 <= 0) {
+    cat("Invalid input for df detected")
+    return()
+  }
+  
+  result <- ((rchisq(RNG, df = dof1)) * dof2) / (rchisq(RNG, df = dof2) * dof1) 
+  print(result)
+  
+  d_f <- data.frame(x = result)
+  p <- ggplot2::ggplot(d_f, ggplot2::aes(x = x)) +
+    ggplot2::geom_histogram(ggplot2::aes(y = ..density..),
+                            bins = 15, fill = "skyblue", color = "white") +
+    ggplot2::geom_density(color = "red", linewidth = 1.2) +
+    ggplot2::stat_function(fun = df, args = list(df1 = dof1, df2 = dof2),
+                           color = "darkgreen", linetype = "dashed", linewidth = 1) +
+    ggplot2::labs(title = "Distribution of RNG", x = "Value", y = "Density") +
+    ggplot2::theme_minimal()
+  
+  print(p)
+  
+  q <- ppoints(length(result))
+  n_theory <- qf(q, df1 = dof1, df2 = dof2)
+  n_sample <- sort(result)
+  plot(n_theory, n_sample, pch = 16, cex = 0.6, col = "steelblue",
+       xlab = "Theoretical F quantiles", ylab = "Sample quantiles", main = "QQ Plot vs F")
+  abline(0, 1, col = "red", lwd = 2)
 }
 
 Simulation <- function() {
   repeat {
     cat("\n-----Simulation menu-----\n")
-    cat("\n1] Buffon Needle Pi approximation")
+    cat("\n1] Buffon Needle Pi approxi")
     cat("\n2] Mid-Square RNG")
     cat("\n3] Congruential RNG")
     cat("\n4] Multiplicative RNG")
     cat("\n5] Shift RNG")
-    cat("\n6] Exit\n")
+    cat("\n")
+    cat("\nDistributions")
+    cat("\n6] Normal Dist RNG")
+    cat("\n7] Exponential Dist RNG")
+    cat("\n8] Gamma Dist RNG")
+    cat("\n9] Beta1 Dist RNG")
+    cat("\n10] Beta2 Dist RNG")
+    cat("\n11] Chi Square Dist RNG")
+    cat("\n12] Student's t Dist RNG")
+    cat("\n13] F Dist RNG")
+    cat("\n14] Exit\n")
     input <- readline("Enter your choice: ")
     choice <- suppressWarnings(as.integer(input))
     
@@ -2329,7 +2893,15 @@ Simulation <- function() {
       "3" = CongRNG3(),
       "4" = MultiRNG4(),
       "5" = Shift5(),
-      "6" = { cat("\nExited Calculator\n"); break },
+      "6" = Normal6(),
+      "7" = Expo7(),
+      "8" = Gamma8(),
+      "9" = BetaOne9(),
+      "10" = BetaTwo10(),
+      "11" = ChiSq11(),
+      "12" = t12(),
+      "13" = F13(),
+      "14" = { cat("\nExited Calculator\n"); break },
       { cat("\nInvalid choice, please enter 1-5.\n") }
     )
   }
