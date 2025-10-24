@@ -2,6 +2,7 @@ setwd("/Users/abhinav/Downloads/essentials/projects")
 library(DescTools)
 library(ggplot2)
 library(extraDistr)
+options(warn = -1)
 ############################################################
 AdditionSubtraction1 <- function() {
   result <- 0
@@ -93,13 +94,13 @@ Exponent4 <- function() {
     return()
   }
   
-  if (base == 0 & power == 0) {
-    cat("Not Defined.\n")
+  if (base == 0 && power == 0) {
+    cat("Not Defined\n")
     return()
   }
   
-  if (base == 0 & power < 0) {
-    cat("Cannot divide by 0.\n")
+  if (base == 0 && power < 0) {
+    cat("Cannot divide by 0\n")
     return()
   }
   
@@ -108,6 +109,7 @@ Exponent4 <- function() {
 }
 
 Factorial5 <- function() {
+  #170
   result <- 1
   cat("Enter a positive number")
   num <- scan(what = character(), n = 1, quiet = TRUE)
@@ -839,6 +841,11 @@ Raw1 <- function() {
     }
     GAMMA2 <- BETA2 - 3
     
+    freq_table <- table(vect)
+    freq_df <- as.data.frame(freq_table)
+    names(freq_df) <- c("Obs", "Freq")
+    print(freq_df)
+    
     cat(
       "\nDescriptive Statistics\n",
       "----------------------\n",
@@ -853,6 +860,7 @@ Raw1 <- function() {
       "Q3: ", Q3, "\n",
       "Range: ", Range, "\n",
       "IQR: ", IQR, "\n",
+      "Semi IQR", IQR/2, "\n",
       "Mode(s): ", Mode, "\n",
       "Mean Deviation about Mean: ", Mean_dev_Mean, "\n",
       "Mean Deviation about Median: ", Mean_dev_Median, "\n",
@@ -869,9 +877,15 @@ Raw1 <- function() {
       ggplot2::geom_boxplot(fill = "lightgreen", color = "black", width = 0.3, outlier.alpha = 0.7) +
       ggplot2::labs(title = "Boxplot", y = NULL) +
       ggplot2::theme_minimal(base_size = 10) +
-      ggplot2::scale_x_continuous(name = "Values", breaks = pretty(Range, n = 15)) +
       ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
     print(p)
+    
+    q <- ggplot2::ggplot(df, ggplot2::aes(x = v)) +
+      ggplot2::geom_histogram(fill = "lightblue", color = "black", bins = nclass.Sturges(vect)) +
+      ggplot2::labs(title = "Histogram", x = "Values", y = "Frequency") +
+      ggplot2::theme_minimal(base_size = 20) +
+      ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+    print(q)
   } else {
     cat("No valid numbers to calculate\n")
     return()
@@ -1006,6 +1020,11 @@ Frequency2 <- function() {
   }
   GAMMA2 <- BETA2 - 3
   
+  freq_table <- table(vect)
+  freq_df <- as.data.frame(freq_table)
+  names(freq_df) <- c("Obs", "Freq")
+  print(freq_df)
+  
   cat(
     "\nDescriptive Statistics\n",
     "----------------------\n",
@@ -1020,6 +1039,7 @@ Frequency2 <- function() {
     "Q3: ", Q3, "\n",
     "Range: ", Range, "\n",
     "IQR: ", IQR, "\n",
+    "Semi IQR", IQR/2, "\n",
     "Mode(s): ", Mode, "\n",
     "Mean Deviation about Mean: ", Mean_dev_Mean, "\n",
     "Mean Deviation about Median: ", Mean_dev_Median, "\n",
@@ -1031,14 +1051,22 @@ Frequency2 <- function() {
     "Beta2 (kurtosis): ", BETA2, "\n",
     "Gamma2 (kurtosis): ", GAMMA2, "\n"
   )
+  
   df <- data.frame(v = vect)
   p <- ggplot2::ggplot(df, ggplot2::aes(x = v, y = "")) +
     ggplot2::geom_boxplot(fill = "lightgreen", color = "black", width = 0.3, outlier.alpha = 0.7) +
     ggplot2::labs(title = "Boxplot", y = NULL) +
     ggplot2::theme_minimal(base_size = 10) +
-    ggplot2::scale_x_continuous(name = "Values", breaks = pretty(Range, n = 15)) +
     ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
   print(p)
+  
+  q <- ggplot2::ggplot(df, ggplot2::aes(x = v)) +
+    ggplot2::geom_histogram(fill = "lightblue", color = "black", bins = nclass.Sturges(vect)) +
+    ggplot2::labs(title = "Histogram", x = "Values", y = "Frequency") +
+    ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5))
+  
+  print(q)
 }
 
 Bivariate3 <- function() {
@@ -1868,7 +1896,7 @@ Simpson13rd11 <- function() {
     g <- function(x) x^2 + (x^4)/10
   }
   
-  #g <- function(x) 3*x^2 + 11
+  #g <- function(x) cos(x) - 5*(x^2)
   #g <- function(x) x^3-2*x^2+2
   cat("Enter the lower limit and upper limit\n")
   ab <- scan(what = numeric(), nmax = 2, quiet = TRUE)
@@ -2132,6 +2160,7 @@ MidSqRNG2 <- function() {
 }
 
 CongRNG3 <- function() {
+  #a = 5, c = 1, m = 8
   cat("Enter number of RNG\n")
   RNG <- scan(what = character(), nmax = 1, quiet = TRUE)
   if (length(RNG) != 1 || any(is.na(RNG))) {
@@ -2935,4 +2964,15 @@ MAIN <- function() {
    
 }
 
-MAIN()
+total_time_taken <- system.time(MAIN())
+
+user_time <- total_time_taken["user.self"]
+system_time <- total_time_taken["sys.self"]
+elapsed_time <- total_time_taken["elapsed"]
+
+cat("\n===============================\n")
+cat("Calculator Uptime Summary\n")
+cat(sprintf("User Time:    %.2f sec\n", user_time))
+cat(sprintf("System Time:  %.2f sec\n", system_time))
+cat(sprintf("Elapsed Time: %.2f sec\n", elapsed_time))
+cat("===============================\n")
