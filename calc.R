@@ -388,6 +388,16 @@ QuadraticRoots13 <- function() {
     result <- round(c(root1, root2), 4)
     cat("Result =\n")
     cat("\n",result[1],"\n", result[2])
+    
+    x_range <- seq(min(root1, root2) - 2, max(root1, root2) + 2, length.out = 500)
+    y <- a * x_range^2 + b * x_range + c
+    
+    plot(x_range, y, type = "l", col = "blue", lwd = 2, xlab = "x", ylab = "f(x)",)
+    abline(h = 0, col = "gray", lty = 2)
+    abline(v = 0, col = "gray", lty = 2)
+    points(c(root1, root2), c(0, 0), col = "red", pch = 19, cex = 1.5)
+    grid()
+    
   } else {
     real <- (-b) / (2*a)
     imag <- sqrt(-d) / (2*a)
@@ -396,9 +406,19 @@ QuadraticRoots13 <- function() {
     result <- c(root1, root2)
     cat("Result =\n")
     cat("\n",result[1],"\n", result[2])
+    
+    plot(c(real, real), c(imag, -imag), 
+         xlim = c(real - 1, real + 1), 
+         ylim = c(-imag - 1, imag + 1),
+         col = "red", pch = 19, cex = 1.5,
+         xlab = "Real", ylab = "Imaginary")
+    abline(h = 0, col = "gray", lty = 2)
+    abline(v = 0, col = "gray", lty = 2)
+    text(real, imag, labels = root1, pos = 4, col = "darkred")
+    text(real, -imag, labels = root2, pos = 4, col = "darkred")
+    grid()
   }
 }
-
 HCF14 <- function() {
   cat("Enter 2 positive natural nos.")
   
